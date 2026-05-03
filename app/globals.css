@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --muted: 210 40% 94%;
+  --muted-foreground: 215 18% 42%;
+  --border: 214 32% 88%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --primary: 215 80% 45%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 174 72% 38%;
+  --accent-foreground: 210 40% 98%;
+}
+
+.dark {
+  --background: 224 38% 7%;
+  --foreground: 210 40% 98%;
+  --muted: 222 35% 14%;
+  --muted-foreground: 215 20% 70%;
+  --border: 222 26% 20%;
+  --card: 222 34% 10%;
+  --card-foreground: 210 40% 98%;
+  --primary: 204 94% 67%;
+  --primary-foreground: 222 47% 11%;
+  --accent: 172 66% 50%;
+  --accent-foreground: 222 47% 11%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.glass {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(24px);
+}
+
+.dark .glass {
+  border-color: rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.58);
+  box-shadow: 0 20px 80px rgba(2, 6, 23, 0.45);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
