@@ -38,8 +38,11 @@ import {
   type BidTable
 } from "@/lib/gameTheory";
 import { cakeValuations, initialRentBids, matchingPreferences, players, rooms } from "@/data/concepts";
+import { zhRooms } from "@/data/zh";
 import type { Concept } from "@/lib/types";
 import { cn, formatCurrency, round } from "@/lib/utils";
+
+type Locale = "en" | "zh";
 
 export function ConceptModule({
   concept,
@@ -48,14 +51,11 @@ export function ConceptModule({
   concept: Concept;
   locale?: "en" | "zh";
 }) {
-  const [mode, setMode] = useState<"beginner" | "advanced">("beginner");
   const isZh = locale === "zh";
   const copy = isZh
     ? {
         back: "Playground",
         module: "互动模块",
-        beginner: "新手",
-        advanced: "进阶",
         switchLabel: "English",
         switchHref: `/concepts/${concept.slug}`,
         step: "分步解释",
@@ -65,8 +65,6 @@ export function ConceptModule({
     : {
         back: "Playground",
         module: "Interactive module",
-        beginner: "beginner",
-        advanced: "advanced",
         switchLabel: "中文版",
         switchHref: `/zh/concepts/${concept.slug}`,
         step: "Step-by-step Explanation",
@@ -88,20 +86,6 @@ export function ConceptModule({
             {copy.back}
           </Link>
           <div className="flex items-center gap-2">
-            <div className="rounded-full border border-border bg-white/70 p-1 dark:bg-white/10">
-              {(["beginner", "advanced"] as const).map((item) => (
-                <button
-                  key={item}
-                  onClick={() => setMode(item)}
-                  className={cn(
-                    "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition",
-                    mode === item ? "bg-foreground text-background dark:bg-white dark:text-slate-950" : "text-muted-foreground"
-                  )}
-                >
-                  {item === "beginner" ? copy.beginner : copy.advanced}
-                </button>
-              ))}
-            </div>
             <Button variant="secondary" size="sm" asChild>
               <Link href={copy.switchHref}>{copy.switchLabel}</Link>
             </Button>
@@ -122,16 +106,16 @@ export function ConceptModule({
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
           <div className="grid gap-6">
             <GlassCard className="p-4 sm:p-5">
-              {concept.slug === "split-rent-fairly" && <SplitRentSimulation />}
-              {concept.slug === "prisoners-dilemma" && <PrisonersSimulation />}
-              {concept.slug === "nash-equilibrium" && <NashSimulation />}
-              {concept.slug === "vickrey-auction" && <VickreySimulation />}
-              {concept.slug === "envy-free-allocation" && <EnvyFreeSimulation />}
-              {concept.slug === "shapley-value" && <ShapleySimulation />}
-              {concept.slug === "bertrand-competition" && <BertrandSimulation />}
-              {concept.slug === "tragedy-of-the-commons" && <CommonsSimulation />}
-              {concept.slug === "ultimatum-game" && <UltimatumSimulation />}
-              {concept.slug === "matching-market" && <MatchingSimulation />}
+              {concept.slug === "split-rent-fairly" && <SplitRentSimulation locale={locale} />}
+              {concept.slug === "prisoners-dilemma" && <PrisonersSimulation locale={locale} />}
+              {concept.slug === "nash-equilibrium" && <NashSimulation locale={locale} />}
+              {concept.slug === "vickrey-auction" && <VickreySimulation locale={locale} />}
+              {concept.slug === "envy-free-allocation" && <EnvyFreeSimulation locale={locale} />}
+              {concept.slug === "shapley-value" && <ShapleySimulation locale={locale} />}
+              {concept.slug === "bertrand-competition" && <BertrandSimulation locale={locale} />}
+              {concept.slug === "tragedy-of-the-commons" && <CommonsSimulation locale={locale} />}
+              {concept.slug === "ultimatum-game" && <UltimatumSimulation locale={locale} />}
+              {concept.slug === "matching-market" && <MatchingSimulation locale={locale} />}
             </GlassCard>
             <div className="grid gap-6 md:grid-cols-2">
               <FormulaPanel formula={concept.formula} interpretation={concept.interpretation} locale={locale} />
@@ -139,7 +123,7 @@ export function ConceptModule({
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   {copy.step}
                 </p>
-                <ExplanationPanel concept={concept} mode={mode} locale={locale} />
+                <ExplanationPanel concept={concept} locale={locale} />
               </GlassCard>
             </div>
           </div>
@@ -158,16 +142,163 @@ export function ConceptModule({
   );
 }
 
-function ResetButton({ onClick }: { onClick: () => void }) {
+function ResetButton({ onClick, locale = "en" }: { onClick: () => void; locale?: Locale }) {
   return (
     <Button variant="secondary" size="sm" onClick={onClick}>
       <RefreshCcw className="h-4 w-4" />
-      Reset simulation
+      {locale === "zh" ? "重置模拟" : "Reset simulation"}
     </Button>
   );
 }
 
-function SplitRentSimulation() {
+const simText = {
+  en: {
+    splitTitle: "Sealed-Bid Room Split",
+    assignedTo: "Assigned to",
+    rent: "Rent",
+    roommate: "Roommate",
+    surplus: "surplus",
+    prisonersTitle: "Takeout Interrogation",
+    trust: "Trust score",
+    playRound: "Play repeated round",
+    actionA: "A action",
+    actionB: "B action",
+    silent: "Stay silent",
+    betray: "Betray",
+    nashTitle: "Milk Tea Location Game",
+    equilibrium: "Nash-like point: no one wants to move alone",
+    shopAProfit: "Shop A profit",
+    shopBProfit: "Shop B profit",
+    signal: "Equilibrium signal",
+    glowing: "Glowing",
+    keepDragging: "Keep dragging",
+    vickreyTitle: "Second-Price Room Auction",
+    secondPrice: "second price",
+    winner: "Winner",
+    pays: "Pays second-highest bid",
+    envyTitle: "Cake Cut Fairness",
+    cream: "Cream",
+    chocolate: "Chocolate",
+    fruit: "Fruit",
+    ownValue: "own value",
+    cut1: "Cut line 1",
+    cut2: "Cut line 2",
+    envyCheck: "Envy-free check",
+    noEnvy: "No envy detected",
+    warnings: "envy warnings",
+    shapleyTitle: "Project Credit Split",
+    joins: "joins",
+    coalitionValue: "coalition value",
+    nextOrder: "Animate next order",
+    fairPayment: "fair payment",
+    bertrandTitle: "Cola Price War",
+    price: "Price",
+    storeAPrice: "Store A price",
+    storeBPrice: "Store B price",
+    priceWar: "Price war signal",
+    atCost: "At marginal cost",
+    splitMarket: "Split market",
+    cheaperWins: "Cheaper store wins",
+    commonsTitle: "Shared Pond",
+    pondStarts: "Pond starts healthy",
+    collapse: "Collapse warning",
+    usage: "usage",
+    simulateRound: "Simulate round",
+    gain: "gain",
+    resource: "resource",
+    ultimatumTitle: "Split $100",
+    keeps: "A keeps",
+    gets: "B gets",
+    accepted: "Accepted",
+    rejected: "Rejected",
+    offerToB: "Offer to B",
+    threshold: "B fairness threshold",
+    rational: "Rational model",
+    fairness: "Human fairness model",
+    accepts: "Accepts",
+    rejects: "Rejects",
+    matchingTitle: "Deferred Acceptance",
+    dragRanking: "Drag Mina's school ranking",
+    stableCheck: "Stable matching check",
+    stable: "Stable",
+    blocking: "Blocking pair found"
+  },
+  zh: {
+    splitTitle: "密封报价分房租",
+    assignedTo: "分配给",
+    rent: "租金",
+    roommate: "室友",
+    surplus: "剩余",
+    prisonersTitle: "外卖事件审问",
+    trust: "信任分数",
+    playRound: "进行一轮重复博弈",
+    actionA: "A 的选择",
+    actionB: "B 的选择",
+    silent: "保持沉默",
+    betray: "背叛",
+    nashTitle: "奶茶店选址博弈",
+    equilibrium: "接近纳什均衡：没人愿意单独移动",
+    shopAProfit: "店铺 A 收益",
+    shopBProfit: "店铺 B 收益",
+    signal: "均衡信号",
+    glowing: "正在发光",
+    keepDragging: "继续拖动",
+    vickreyTitle: "二价房间拍卖",
+    secondPrice: "第二高价",
+    winner: "获胜者",
+    pays: "支付第二高报价",
+    envyTitle: "蛋糕切分公平性",
+    cream: "奶油",
+    chocolate: "巧克力",
+    fruit: "水果",
+    ownValue: "主观价值",
+    cut1: "切线 1",
+    cut2: "切线 2",
+    envyCheck: "无嫉妒检查",
+    noEnvy: "没有检测到嫉妒",
+    warnings: "个嫉妒提醒",
+    shapleyTitle: "项目贡献分配",
+    joins: "第",
+    coalitionValue: "联盟价值",
+    nextOrder: "播放下一个加入顺序",
+    fairPayment: "公平报酬",
+    bertrandTitle: "可乐价格战",
+    price: "价格",
+    storeAPrice: "店铺 A 价格",
+    storeBPrice: "店铺 B 价格",
+    priceWar: "价格战信号",
+    atCost: "已到边际成本",
+    splitMarket: "平分市场",
+    cheaperWins: "低价店获胜",
+    commonsTitle: "共享鱼塘",
+    pondStarts: "鱼塘一开始很健康",
+    collapse: "崩塌警告",
+    usage: "使用量",
+    simulateRound: "模拟一轮",
+    gain: "收益",
+    resource: "资源",
+    ultimatumTitle: "分配 100 美元",
+    keeps: "A 保留",
+    gets: "B 获得",
+    accepted: "接受",
+    rejected: "拒绝",
+    offerToB: "给 B 的金额",
+    threshold: "B 的公平底线",
+    rational: "理性模型",
+    fairness: "人类公平模型",
+    accepts: "接受",
+    rejects: "拒绝",
+    matchingTitle: "延迟接受算法",
+    dragRanking: "拖动 Mina 的学校偏好",
+    stableCheck: "稳定匹配检查",
+    stable: "稳定",
+    blocking: "存在阻塞配对"
+  }
+} as const;
+
+function SplitRentSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
+  const activeRooms = locale === "zh" ? zhRooms : rooms;
   const [bids, setBids] = useState<BidTable>(initialRentBids);
   const assignment = useMemo(() => calculateRoomAssignment(bids, 1600), [bids]);
   const byRoom = Object.fromEntries(assignment.map((item) => [item.roomId, item]));
@@ -182,12 +313,12 @@ function SplitRentSimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Sealed-Bid Room Split</h2>
-        <ResetButton onClick={() => setBids(initialRentBids)} />
+        <h2 className="text-2xl font-semibold">{t.splitTitle}</h2>
+        <ResetButton locale={locale} onClick={() => setBids(initialRentBids)} />
       </div>
       <SimulationCanvas>
         <div className="grid gap-4 md:grid-cols-3">
-          {rooms.map((room, index) => {
+          {activeRooms.map((room, index) => {
             const result = byRoom[room.id];
             const owner = players.find((player) => player.id === result?.ownerId);
             return (
@@ -205,12 +336,12 @@ function SplitRentSimulation() {
                 <h3 className="mt-4 font-semibold">{room.name}</h3>
                 <p className="text-sm text-muted-foreground">{room.description}</p>
                 <div className="mt-4 rounded-[8px] bg-muted p-3">
-                  <p className="text-xs text-muted-foreground">Assigned to</p>
+                  <p className="text-xs text-muted-foreground">{t.assignedTo}</p>
                   <p className="font-semibold" style={{ color: owner?.color }}>
                     {owner?.name}
                   </p>
                   <p className="mt-2 text-sm">
-                    Rent <AnimatedCounter value={result?.rent ?? 0} prefix="$" />
+                    {t.rent} <AnimatedCounter value={result?.rent ?? 0} prefix="$" />
                   </p>
                 </div>
               </motion.div>
@@ -222,8 +353,8 @@ function SplitRentSimulation() {
         <table className="w-full min-w-[620px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-muted-foreground">
-              <th className="p-3">Roommate</th>
-              {rooms.map((room) => (
+              <th className="p-3">{t.roommate}</th>
+              {activeRooms.map((room) => (
                 <th key={room.id} className="p-3">
                   {room.name}
                 </th>
@@ -234,7 +365,7 @@ function SplitRentSimulation() {
             {players.map((player) => (
               <tr key={player.id} className="border-b border-border last:border-b-0">
                 <td className="p-3 font-semibold">{player.name}</td>
-                {rooms.map((room) => {
+                {activeRooms.map((room) => {
                   const assigned = byRoom[room.id]?.ownerId === player.id;
                   return (
                     <td key={room.id} className={cn("p-3", assigned && "bg-primary/10")}>
@@ -257,7 +388,7 @@ function SplitRentSimulation() {
         {assignment.map((item) => (
           <ResultCard
             key={`${item.ownerId}-${item.roomId}`}
-            label={`${players.find((player) => player.id === item.ownerId)?.name} surplus`}
+            label={`${players.find((player) => player.id === item.ownerId)?.name} ${t.surplus}`}
             value={item.surplus}
             prefix="$"
             tone="good"
@@ -268,12 +399,22 @@ function SplitRentSimulation() {
   );
 }
 
-function PrisonersSimulation() {
+function PrisonersSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [actionA, setActionA] = useState<"cooperate" | "defect">("cooperate");
   const [actionB, setActionB] = useState<"cooperate" | "defect">("defect");
   const [trust, setTrust] = useState(58);
-  const [history, setHistory] = useState<string[]>(["Round 1: choose actions"]);
+  const [history, setHistory] = useState<string[]>([locale === "zh" ? "第 1 轮：请选择行动" : "Round 1: choose actions"]);
   const result = calculatePrisonersDilemmaPayoff(actionA, actionB);
+  const matrix = prisonersPayoffMatrix().map((cell) =>
+    locale === "zh"
+      ? {
+          ...cell,
+          rowStrategy: cell.rowStrategy === "Cooperate" ? "沉默" : "背叛",
+          columnStrategy: cell.columnStrategy === "Cooperate" ? "沉默" : "背叛"
+        }
+      : cell
+  );
 
   function playRound() {
     setTrust((current) => {
@@ -281,36 +422,40 @@ function PrisonersSimulation() {
       const updated = actionA === "cooperate" && actionB === "cooperate" ? current + 14 : current - (next.payoffA + next.payoffB <= -6 ? 20 : 12);
       return Math.max(0, Math.min(100, updated));
     });
-    setHistory((items) => [...items.slice(-4), `${result.label}: ${result.payoffA}, ${result.payoffB}`]);
+    setHistory((items) => [
+      ...items.slice(-4),
+      locale === "zh" ? `本轮收益：${result.payoffA}, ${result.payoffB}` : `${result.label}: ${result.payoffA}, ${result.payoffB}`
+    ]);
   }
 
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Takeout Interrogation</h2>
+        <h2 className="text-2xl font-semibold">{t.prisonersTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setActionA("cooperate");
             setActionB("defect");
             setTrust(58);
-            setHistory(["Round 1: choose actions"]);
+            setHistory([locale === "zh" ? "第 1 轮：请选择行动" : "Round 1: choose actions"]);
           }}
         />
       </div>
       <SimulationCanvas>
         <div className="grid h-full content-center gap-6 md:grid-cols-[1fr_1.2fr_1fr]">
-          <AnimatedCharacter name="Roommate A" mood={result.payoffA >= -1 ? "happy" : "worried"} color="#2563eb" />
+          <AnimatedCharacter name={locale === "zh" ? "室友 A" : "Roommate A"} mood={result.payoffA >= -1 ? "happy" : "worried"} color="#2563eb" />
           <div className="grid content-center gap-4">
             <PayoffMatrix
-              matrix={prisonersPayoffMatrix()}
+              matrix={matrix}
               highlight={{
-                rowStrategy: actionA === "cooperate" ? "Cooperate" : "Defect",
-                columnStrategy: actionB === "cooperate" ? "Cooperate" : "Defect"
+                rowStrategy: actionA === "cooperate" ? (locale === "zh" ? "沉默" : "Cooperate") : (locale === "zh" ? "背叛" : "Defect"),
+                columnStrategy: actionB === "cooperate" ? (locale === "zh" ? "沉默" : "Cooperate") : (locale === "zh" ? "背叛" : "Defect")
               }}
             />
             <div>
               <div className="mb-2 flex justify-between text-sm">
-                <span>Trust score</span>
+                <span>{t.trust}</span>
                 <span>{trust}</span>
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-muted">
@@ -318,17 +463,17 @@ function PrisonersSimulation() {
               </div>
             </div>
           </div>
-          <AnimatedCharacter name="Roommate B" mood={result.payoffB >= -1 ? "happy" : "worried"} color="#db2777" />
+          <AnimatedCharacter name={locale === "zh" ? "室友 B" : "Roommate B"} mood={result.payoffB >= -1 ? "happy" : "worried"} color="#db2777" />
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-2">
-        <ChoiceGroup label="A action" value={actionA} onChange={setActionA} />
-        <ChoiceGroup label="B action" value={actionB} onChange={setActionB} />
+        <ChoiceGroup label={t.actionA} value={actionA} onChange={setActionA} locale={locale} />
+        <ChoiceGroup label={t.actionB} value={actionB} onChange={setActionB} locale={locale} />
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={playRound}>
           <Play className="h-4 w-4" />
-          Play repeated round
+          {t.playRound}
         </Button>
         <ResultCard label="A payoff" value={result.payoffA} tone={result.payoffA >= -1 ? "good" : "danger"} />
         <ResultCard label="B payoff" value={result.payoffB} tone={result.payoffB >= -1 ? "good" : "danger"} />
@@ -341,19 +486,22 @@ function PrisonersSimulation() {
 function ChoiceGroup({
   label,
   value,
-  onChange
+  onChange,
+  locale = "en"
 }: {
   label: string;
   value: "cooperate" | "defect";
   onChange: (value: "cooperate" | "defect") => void;
+  locale?: Locale;
 }) {
+  const t = simText[locale];
   return (
     <div className="rounded-[8px] border border-border bg-white/60 p-3 dark:bg-white/5">
       <p className="mb-2 text-sm font-semibold">{label}</p>
       <div className="grid grid-cols-2 gap-2">
         {(["cooperate", "defect"] as const).map((item) => (
           <Button key={item} variant={value === item ? "primary" : "secondary"} onClick={() => onChange(item)}>
-            {item === "cooperate" ? "Stay silent" : "Betray"}
+            {item === "cooperate" ? t.silent : t.betray}
           </Button>
         ))}
       </div>
@@ -361,7 +509,8 @@ function ChoiceGroup({
   );
 }
 
-function NashSimulation() {
+function NashSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [shopA, setShopA] = useState({ x: 0.36, y: 0.46 });
   const [shopB, setShopB] = useState({ x: 0.64, y: 0.48 });
   const [dragging, setDragging] = useState<"a" | "b" | null>(null);
@@ -396,8 +545,9 @@ function NashSimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Milk Tea Location Game</h2>
+        <h2 className="text-2xl font-semibold">{t.nashTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setShopA({ x: 0.36, y: 0.46 });
             setShopB({ x: 0.64, y: 0.48 });
@@ -414,8 +564,8 @@ function NashSimulation() {
           <D3Heatmap values={heat} className="absolute inset-0 h-full w-full opacity-80" active={{ x: 0.5, y: 0.46 }} />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.62))] dark:bg-[radial-gradient(circle_at_center,transparent,rgba(2,6,23,0.55))]" />
           {[
-            ["a", shopA, "Shop A", "#2563eb"],
-            ["b", shopB, "Shop B", "#db2777"]
+            ["a", shopA, locale === "zh" ? "店铺 A" : "Shop A", "#2563eb"],
+            ["b", shopB, locale === "zh" ? "店铺 B" : "Shop B", "#db2777"]
           ].map(([id, shop, label, color]) => (
             <motion.button
               key={id as string}
@@ -436,21 +586,22 @@ function NashSimulation() {
           ))}
           {closeToEquilibrium ? (
             <div className="absolute left-1/2 top-6 -translate-x-1/2 rounded-full border border-emerald-400/50 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-700 backdrop-blur dark:text-emerald-200">
-              Nash-like point: no one wants to move alone
+              {t.equilibrium}
             </div>
           ) : null}
         </div>
       </SimulationCanvas>
       <div className="grid gap-3 md:grid-cols-3">
-        <ResultCard label="Shop A profit" value={profitA} tone={profitA >= profitB ? "good" : "neutral"} />
-        <ResultCard label="Shop B profit" value={profitB} tone={profitB >= profitA ? "good" : "neutral"} />
-        <ResultCard label="Equilibrium signal" value={closeToEquilibrium ? "Glowing" : "Keep dragging"} tone={closeToEquilibrium ? "good" : "warn"} />
+        <ResultCard label={t.shopAProfit} value={profitA} tone={profitA >= profitB ? "good" : "neutral"} />
+        <ResultCard label={t.shopBProfit} value={profitB} tone={profitB >= profitA ? "good" : "neutral"} />
+        <ResultCard label={t.signal} value={closeToEquilibrium ? t.glowing : t.keepDragging} tone={closeToEquilibrium ? "good" : "warn"} />
       </div>
     </div>
   );
 }
 
-function VickreySimulation() {
+function VickreySimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [bidA, setBidA] = useState(720);
   const [bidB, setBidB] = useState(640);
   const [bidC, setBidC] = useState(580);
@@ -465,8 +616,9 @@ function VickreySimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Second-Price Room Auction</h2>
+        <h2 className="text-2xl font-semibold">{t.vickreyTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setBidA(720);
             setBidB(640);
@@ -489,7 +641,7 @@ function VickreySimulation() {
                 />
                 {result.payment === bid.amount && (
                   <div className="absolute inset-y-0 right-0 grid place-items-center px-3 text-xs font-semibold">
-                    second price
+                    {t.secondPrice}
                   </div>
                 )}
               </div>
@@ -498,19 +650,20 @@ function VickreySimulation() {
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-3">
-        <StrategySlider label="Ava bid" min={100} max={1000} value={bidA} prefix="$" onChange={setBidA} />
-        <StrategySlider label="Ben bid" min={100} max={1000} value={bidB} onChange={setBidB} />
-        <StrategySlider label="Chloe bid" min={100} max={1000} value={bidC} onChange={setBidC} />
+        <StrategySlider label={locale === "zh" ? "Ava 报价" : "Ava bid"} min={100} max={1000} value={bidA} prefix="$" onChange={setBidA} />
+        <StrategySlider label={locale === "zh" ? "Ben 报价" : "Ben bid"} min={100} max={1000} value={bidB} prefix="$" onChange={setBidB} />
+        <StrategySlider label={locale === "zh" ? "Chloe 报价" : "Chloe bid"} min={100} max={1000} value={bidC} prefix="$" onChange={setBidC} />
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <ResultCard label="Winner" value={result.winner.bidderId} tone="good" />
-        <ResultCard label="Pays second-highest bid" value={result.payment} prefix="$" tone="good" />
+        <ResultCard label={t.winner} value={result.winner.bidderId} tone="good" />
+        <ResultCard label={t.pays} value={result.payment} prefix="$" tone="good" />
       </div>
     </div>
   );
 }
 
-function EnvyFreeSimulation() {
+function EnvyFreeSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [cut1, setCut1] = useState(34);
   const [cut2, setCut2] = useState(68);
   const sorted = [Math.min(cut1, cut2), Math.max(cut1, cut2)];
@@ -533,8 +686,9 @@ function EnvyFreeSimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Cake Cut Fairness</h2>
+        <h2 className="text-2xl font-semibold">{t.envyTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setCut1(34);
             setCut2(68);
@@ -553,16 +707,16 @@ function EnvyFreeSimulation() {
               />
             ))}
             <div className="absolute inset-0 grid grid-cols-3 text-center text-sm font-semibold text-slate-950">
-              <div className="grid place-items-center bg-white/10">Cream</div>
-              <div className="grid place-items-center bg-white/10">Chocolate</div>
-              <div className="grid place-items-center bg-white/10">Fruit</div>
+              <div className="grid place-items-center bg-white/10">{t.cream}</div>
+              <div className="grid place-items-center bg-white/10">{t.chocolate}</div>
+              <div className="grid place-items-center bg-white/10">{t.fruit}</div>
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             {Object.keys(allocation).map((person) => (
               <ResultCard
                 key={person}
-                label={`${person}'s own value`}
+                label={`${person} ${t.ownValue}`}
                 value={round(calculateSubjectiveValue(cakeValuations[person as keyof typeof cakeValuations], allocation[person as keyof typeof allocation]) * 100, 0)}
                 tone="neutral"
               />
@@ -571,19 +725,20 @@ function EnvyFreeSimulation() {
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-2">
-        <StrategySlider label="Cut line 1" min={10} max={90} value={cut1} suffix="%" onChange={setCut1} />
-        <StrategySlider label="Cut line 2" min={10} max={90} value={cut2} suffix="%" onChange={setCut2} />
+        <StrategySlider label={t.cut1} min={10} max={90} value={cut1} suffix="%" onChange={setCut1} />
+        <StrategySlider label={t.cut2} min={10} max={90} value={cut2} suffix="%" onChange={setCut2} />
       </div>
       <ResultCard
-        label="Envy-free check"
-        value={envy.envyFree ? "No envy detected" : `${envy.envyPairs.length} envy warning${envy.envyPairs.length > 1 ? "s" : ""}`}
+        label={t.envyCheck}
+        value={envy.envyFree ? t.noEnvy : `${envy.envyPairs.length} ${t.warnings}`}
         tone={envy.envyFree ? "good" : "warn"}
       />
     </div>
   );
 }
 
-function ShapleySimulation() {
+function ShapleySimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const playersList = ["Ava", "Ben", "Chloe"];
   const [active, setActive] = useState(0);
   const valueFunction = (coalition: string[]) => {
@@ -604,8 +759,8 @@ function ShapleySimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Project Credit Split</h2>
-        <ResetButton onClick={() => setActive(0)} />
+        <h2 className="text-2xl font-semibold">{t.shapleyTitle}</h2>
+        <ResetButton locale={locale} onClick={() => setActive(0)} />
       </div>
       <SimulationCanvas>
         <div className="grid h-full content-center gap-8">
@@ -617,10 +772,12 @@ function ShapleySimulation() {
                 animate={{ opacity: 1, y: 0 }}
                 className="rounded-[8px] border border-border bg-white/75 p-5 text-center shadow-glass dark:bg-white/5"
               >
-                <p className="text-xs text-muted-foreground">joins #{index + 1}</p>
+                <p className="text-xs text-muted-foreground">
+                  {locale === "zh" ? `第 ${index + 1} 个加入` : `${t.joins} #${index + 1}`}
+                </p>
                 <p className="mt-2 text-xl font-semibold">{player}</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  coalition value {formatCurrency(valueFunction(order.slice(0, index + 1)))}
+                  {t.coalitionValue} {formatCurrency(valueFunction(order.slice(0, index + 1)))}
                 </p>
               </motion.div>
             ))}
@@ -631,19 +788,20 @@ function ShapleySimulation() {
       <div className="flex flex-wrap gap-3">
         <Button onClick={() => setActive((current) => (current + 1) % orders.length)}>
           <Play className="h-4 w-4" />
-          Animate next order
+          {t.nextOrder}
         </Button>
       </div>
       <div className="grid gap-3 md:grid-cols-3">
         {Object.entries(shapley).map(([player, value]) => (
-          <ResultCard key={player} label={`${player} fair payment`} value={value} prefix="$" tone="good" />
+          <ResultCard key={player} label={`${player} ${t.fairPayment}`} value={value} prefix="$" tone="good" />
         ))}
       </div>
     </div>
   );
 }
 
-function BertrandSimulation() {
+function BertrandSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [priceA, setPriceA] = useState(4);
   const [priceB, setPriceB] = useState(5);
   const cost = 2;
@@ -656,8 +814,9 @@ function BertrandSimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Cola Price War</h2>
+        <h2 className="text-2xl font-semibold">{t.bertrandTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setPriceA(4);
             setPriceB(5);
@@ -667,12 +826,12 @@ function BertrandSimulation() {
       <SimulationCanvas>
         <div className="grid h-full content-center gap-6 md:grid-cols-2">
           {[
-            ["Store A", priceA, demand.demandA, storeAProfit, "#2563eb"],
-            ["Store B", priceB, demand.demandB, storeBProfit, "#db2777"]
+            [locale === "zh" ? "店铺 A" : "Store A", priceA, demand.demandA, storeAProfit, "#2563eb"],
+            [locale === "zh" ? "店铺 B" : "Store B", priceB, demand.demandB, storeBProfit, "#db2777"]
           ].map(([name, price, quantity, profit, color]) => (
             <div key={name as string} className="rounded-[8px] border border-border bg-white/70 p-5 dark:bg-white/5">
               <p className="text-lg font-semibold">{name}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Price ${price}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t.price} ${price}</p>
               <div className="mt-5 flex h-20 items-end gap-1">
                 {Array.from({ length: Math.round((quantity as number) / 8) }).map((_, index) => (
                   <motion.div
@@ -692,41 +851,43 @@ function BertrandSimulation() {
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-2">
-        <StrategySlider label="Store A price" min={2} max={8} value={priceA} prefix="$" onChange={setPriceA} />
-        <StrategySlider label="Store B price" min={2} max={8} value={priceB} prefix="$" onChange={setPriceB} />
+        <StrategySlider label={t.storeAPrice} min={2} max={8} value={priceA} prefix="$" onChange={setPriceA} />
+        <StrategySlider label={t.storeBPrice} min={2} max={8} value={priceB} prefix="$" onChange={setPriceB} />
       </div>
       <ResultCard
-        label="Price war signal"
-        value={priceA === cost && priceB === cost ? "At marginal cost" : priceA === priceB ? "Split market" : "Cheaper store wins"}
+        label={t.priceWar}
+        value={priceA === cost && priceB === cost ? t.atCost : priceA === priceB ? t.splitMarket : t.cheaperWins}
         tone={priceA === cost && priceB === cost ? "warn" : "neutral"}
       />
     </div>
   );
 }
 
-function CommonsSimulation() {
+function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [usage, setUsage] = useState([8, 8, 8]);
   const [resource, setResource] = useState(82);
-  const [history, setHistory] = useState<string[]>(["Pond starts healthy"]);
+  const [history, setHistory] = useState<string[]>([t.pondStarts]);
   const round = simulateCommonsRound(usage, resource, 18);
 
   function play() {
     setResource(round.nextResource);
     setHistory((items) => [
       ...items.slice(-4),
-      `Usage ${round.totalUsage}, resource ${Math.round(round.nextResource)}`
+      `${t.usage} ${round.totalUsage}, ${t.resource} ${Math.round(round.nextResource)}`
     ]);
   }
 
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Shared Pond</h2>
+        <h2 className="text-2xl font-semibold">{t.commonsTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setUsage([8, 8, 8]);
             setResource(82);
-            setHistory(["Pond starts healthy"]);
+            setHistory([t.pondStarts]);
           }}
         />
       </div>
@@ -742,7 +903,7 @@ function CommonsSimulation() {
             </div>
           </div>
           {round.collapsed ? (
-            <div className="mx-auto rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white">Collapse warning</div>
+            <div className="mx-auto rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white">{t.collapse}</div>
           ) : null}
         </div>
       </SimulationCanvas>
@@ -750,7 +911,7 @@ function CommonsSimulation() {
         {usage.map((value, index) => (
           <StrategySlider
             key={index}
-            label={`Player ${index + 1} usage`}
+            label={`${locale === "zh" ? "玩家" : "Player"} ${index + 1} ${t.usage}`}
             min={0}
             max={18}
             value={value}
@@ -760,11 +921,11 @@ function CommonsSimulation() {
       </div>
       <Button onClick={play}>
         <Play className="h-4 w-4" />
-        Simulate round
+        {t.simulateRound}
       </Button>
       <div className="grid gap-3 md:grid-cols-3">
         {round.payoffs.map((payoff, index) => (
-          <ResultCard key={index} label={`Player ${index + 1} gain`} value={payoff} tone="neutral" />
+          <ResultCard key={index} label={`${locale === "zh" ? "玩家" : "Player"} ${index + 1} ${t.gain}`} value={payoff} tone="neutral" />
         ))}
       </div>
       <TimelineAnimation steps={history} />
@@ -772,7 +933,8 @@ function CommonsSimulation() {
   );
 }
 
-function UltimatumSimulation() {
+function UltimatumSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [offer, setOffer] = useState(35);
   const [threshold, setThreshold] = useState(30);
   const outcome = calculateUltimatumOutcome(100, offer, threshold);
@@ -780,8 +942,9 @@ function UltimatumSimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Split $100</h2>
+        <h2 className="text-2xl font-semibold">{t.ultimatumTitle}</h2>
         <ResetButton
+          locale={locale}
           onClick={() => {
             setOffer(35);
             setThreshold(30);
@@ -792,10 +955,10 @@ function UltimatumSimulation() {
         <div className="grid h-full content-center gap-8">
           <div className="mx-auto flex w-full max-w-xl overflow-hidden rounded-[8px] border border-border text-center text-white shadow-glass">
             <motion.div className="bg-primary p-6" animate={{ width: `${100 - offer}%` }}>
-              A keeps ${100 - offer}
+              {t.keeps} ${100 - offer}
             </motion.div>
             <motion.div className="bg-accent p-6" animate={{ width: `${offer}%` }}>
-              B gets ${offer}
+              {t.gets} ${offer}
             </motion.div>
           </div>
           <motion.div
@@ -805,23 +968,24 @@ function UltimatumSimulation() {
               outcome.accepted ? "border-emerald-500 text-emerald-600" : "border-red-500 text-red-600"
             )}
           >
-            {outcome.accepted ? "Accepted" : "Rejected"}
+            {outcome.accepted ? t.accepted : t.rejected}
           </motion.div>
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-2">
-        <StrategySlider label="Offer to B" min={0} max={100} value={offer} prefix="$" onChange={setOffer} />
-        <StrategySlider label="B fairness threshold" min={0} max={60} value={threshold} prefix="$" onChange={setThreshold} />
+        <StrategySlider label={t.offerToB} min={0} max={100} value={offer} prefix="$" onChange={setOffer} />
+        <StrategySlider label={t.threshold} min={0} max={60} value={threshold} prefix="$" onChange={setThreshold} />
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <ResultCard label="Rational model" value={outcome.acceptsRationally ? "Accepts" : "Rejects"} tone="neutral" />
-        <ResultCard label="Human fairness model" value={outcome.acceptsBehaviorally ? "Accepts" : "Rejects"} tone={outcome.accepted ? "good" : "danger"} />
+        <ResultCard label={t.rational} value={outcome.acceptsRationally ? t.accepts : t.rejects} tone="neutral" />
+        <ResultCard label={t.fairness} value={outcome.acceptsBehaviorally ? t.accepts : t.rejects} tone={outcome.accepted ? "good" : "danger"} />
       </div>
     </div>
   );
 }
 
-function MatchingSimulation() {
+function MatchingSimulation({ locale = "en" }: { locale?: Locale }) {
+  const t = simText[locale];
   const [minaRanking, setMinaRanking] = useState(matchingPreferences.proposers[0].rankings);
   const preferences = {
     ...matchingPreferences,
@@ -840,8 +1004,8 @@ function MatchingSimulation() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold">Deferred Acceptance</h2>
-        <ResetButton onClick={() => setMinaRanking(matchingPreferences.proposers[0].rankings)} />
+        <h2 className="text-2xl font-semibold">{t.matchingTitle}</h2>
+        <ResetButton locale={locale} onClick={() => setMinaRanking(matchingPreferences.proposers[0].rankings)} />
       </div>
       <SimulationCanvas>
         <div className="grid h-full content-center gap-5 md:grid-cols-[1fr_1.2fr_1fr]">
@@ -875,10 +1039,10 @@ function MatchingSimulation() {
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-2">
-        <DragRankingList title="Drag Mina's school ranking" items={minaRanking} onChange={setMinaRanking} />
+        <DragRankingList title={t.dragRanking} items={minaRanking} onChange={setMinaRanking} />
         <TimelineAnimation steps={result.steps.slice(0, 7).map((step) => step.message)} />
       </div>
-      <ResultCard label="Stable matching check" value={stable ? "Stable" : "Blocking pair found"} tone={stable ? "good" : "warn"} />
+      <ResultCard label={t.stableCheck} value={stable ? t.stable : t.blocking} tone={stable ? "good" : "warn"} />
     </div>
   );
 }

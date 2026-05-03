@@ -33,7 +33,7 @@ export function ProgressTracker({
   return (
     <div className="glass rounded-[8px] p-4">
       <div className="mb-3 flex items-center justify-between text-sm">
-        <span className="font-semibold">Progress</span>
+        <span className="font-semibold">{locale === "zh" ? "学习进度" : "Progress"}</span>
         <span className="text-muted-foreground">{percent}%</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-muted">

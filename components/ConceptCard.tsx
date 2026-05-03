@@ -39,7 +39,7 @@ export function ConceptCard({
               <Icon className="h-5 w-5" />
             </div>
             <span className="rounded-full border border-border bg-white/60 px-3 py-1 text-xs text-muted-foreground dark:bg-white/10">
-              Module {index + 1}
+              {locale === "zh" ? "模块" : "Module"} {index + 1}
             </span>
           </div>
           <div>

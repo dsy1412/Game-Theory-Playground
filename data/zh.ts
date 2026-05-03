@@ -99,6 +99,27 @@ export const zhConcepts: Concept[] = concepts.map((concept) => ({
   ...zhCopy[concept.slug]
 }));
 
+export const zhRooms = [
+  {
+    id: "large-window",
+    name: "大房间",
+    description: "落地窗，采光最好",
+    quality: 96
+  },
+  {
+    id: "medium-bed",
+    name: "中等房间",
+    description: "1.8 米床，光线均衡",
+    quality: 76
+  },
+  {
+    id: "small-room",
+    name: "小房间",
+    description: "安静，但没有窗景",
+    quality: 52
+  }
+];
+
 export const zhGlossary = [
   ["收益", "参与者从某个结果中得到的价值。"],
   ["策略", "参与者的完整行动计划。"],
