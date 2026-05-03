@@ -44,24 +44,25 @@ export function HomePage({ locale = "en" }: { locale?: "en" | "zh" }) {
       </header>
 
       <section className="relative overflow-hidden">
-        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="absolute inset-0">
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="pointer-events-none absolute inset-0">
           <HeroStrategyScene concepts={activeConcepts} />
         </motion.div>
-        <div className="relative mx-auto grid min-h-[86vh] max-w-7xl content-center px-4 pb-20 pt-20 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto grid min-h-[86vh] max-w-7xl content-center px-4 pb-20 pt-20 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75 }}
-            className="max-w-4xl"
+            className="max-w-3xl"
           >
             <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-white/70 px-4 py-2 text-sm font-medium text-muted-foreground backdrop-blur dark:bg-white/10">
               <Sparkles className="h-4 w-4 text-accent" />
               {copy.badge}
             </p>
-            <h1 className="text-balance text-6xl font-semibold tracking-tight sm:text-7xl lg:text-8xl">
+            <h1 className="text-balance text-6xl font-semibold tracking-tight text-foreground drop-shadow-sm sm:text-7xl lg:text-8xl">
               Game Theory Playground
             </h1>
             <p className="mt-6 max-w-2xl text-xl leading-9 text-muted-foreground">{copy.subtitle}</p>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">{copy.promise}</p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Button asChild>
                 <Link href="#concepts">
@@ -75,6 +76,20 @@ export function HomePage({ locale = "en" }: { locale?: "en" | "zh" }) {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
+            </div>
+            <div className="mt-8 grid max-w-2xl gap-2 sm:grid-cols-3">
+              {copy.microSteps.map((step, index) => (
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.18 + index * 0.08 }}
+                  className="rounded-[8px] border border-border bg-white/60 px-4 py-3 text-sm font-medium shadow-sm backdrop-blur dark:bg-white/10"
+                >
+                  <span className="mr-2 text-muted-foreground">0{index + 1}</span>
+                  {step}
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
@@ -191,10 +206,10 @@ function HeroStrategyScene({ concepts }: { concepts: Concept[] }) {
       {cards.map((concept, index) => (
         <motion.div
           key={concept.slug}
-          className="absolute hidden w-44 rounded-[8px] border border-white/30 bg-white/55 p-3 text-sm font-semibold shadow-glass backdrop-blur-xl dark:bg-white/10 md:block"
+          className="absolute hidden w-44 rounded-[8px] border border-white/30 bg-white/55 p-3 text-sm font-semibold opacity-75 shadow-glass backdrop-blur-xl dark:bg-white/10 lg:block"
           style={{
-            left: `${8 + (index % 5) * 18}%`,
-            top: `${16 + Math.floor(index / 5) * 42 + (index % 2) * 8}%`
+            left: `${54 + (index % 3) * 15}%`,
+            top: `${12 + Math.floor(index / 3) * 22 + (index % 2) * 6}%`
           }}
           animate={{ y: [0, -16, 0], rotate: [0, index % 2 ? 2 : -2, 0] }}
           transition={{ duration: 7 + index * 0.35, repeat: Infinity, ease: "easeInOut" }}
@@ -211,8 +226,11 @@ const enHomeCopy = {
   navConcepts: "Concepts",
   badge: "10 real-life simulations, all in your browser",
   subtitle: "Learn strategic thinking through interactive visual simulations.",
+  promise:
+    "Start with an everyday conflict, change one decision, and see the incentives, payoffs, and fairness rule update in front of you.",
   start: "Start exploring",
   try: "Try Prisoner's Dilemma",
+  microSteps: ["Pick a scenario", "Move one control", "Read the result"],
   conceptEyebrow: "Concept Library",
   conceptTitle: "Choose a simulation",
   conceptText: "Hover a card, open a module, change a strategy, and watch the incentive structure respond.",
@@ -234,8 +252,10 @@ const zhHomeCopy = {
   navConcepts: "概念",
   badge: "10 个真实生活模拟，全部在浏览器中运行",
   subtitle: "通过互动可视化模拟学习策略思维。",
+  promise: "从一个熟悉的生活冲突开始，改变一个选择，马上看到激励、收益和公平规则如何变化。",
   start: "开始探索",
   try: "体验囚徒困境",
+  microSteps: ["选择场景", "改变策略", "读懂结果"],
   conceptEyebrow: "概念库",
   conceptTitle: "选择一个模拟",
   conceptText: "悬停卡片，打开模块，改变策略，观察激励结构如何响应。",

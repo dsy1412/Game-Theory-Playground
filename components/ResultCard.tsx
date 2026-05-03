@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +18,11 @@ export function ResultCard({
   suffix?: string;
 }) {
   return (
-    <div
+    <motion.div
+      layout
+      whileHover={{ y: -3 }}
+      animate={{ scale: [1, 1.015, 1] }}
+      transition={{ duration: 0.45 }}
       className={cn(
         "rounded-[8px] border border-border bg-white/70 p-4 dark:bg-white/5",
         tone === "good" && "border-emerald-500/40 bg-emerald-500/10",
@@ -27,6 +34,6 @@ export function ResultCard({
       <p className="mt-2 text-2xl font-semibold tracking-tight">
         {typeof value === "number" ? <AnimatedCounter value={value} prefix={prefix} suffix={suffix} /> : value}
       </p>
-    </div>
+    </motion.div>
   );
 }

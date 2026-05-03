@@ -7,7 +7,7 @@ import {
   RefreshCcw
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
 import { AnimatedCharacter } from "@/components/AnimatedCharacter";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { ExplanationPanel } from "@/components/ExplanationPanel";
@@ -148,6 +148,27 @@ function ResetButton({ onClick, locale = "en" }: { onClick: () => void; locale?:
       <RefreshCcw className="h-4 w-4" />
       {locale === "zh" ? "重置模拟" : "Reset simulation"}
     </Button>
+  );
+}
+
+function InsightPanel({
+  locale = "en",
+  title,
+  children
+}: {
+  locale?: Locale;
+  title?: string;
+  children: ReactNode;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-[8px] border border-primary/20 bg-primary/10 p-4 text-sm leading-6 text-muted-foreground dark:bg-white/5"
+    >
+      <p className="mb-1 font-semibold text-foreground">{title ?? (locale === "zh" ? "怎样读这个结果" : "How to read this result")}</p>
+      {children}
+    </motion.div>
   );
 }
 
@@ -395,6 +416,11 @@ function SplitRentSimulation({ locale = "en" }: { locale?: Locale }) {
           />
         ))}
       </div>
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "先看每个人最愿意为哪个房间付钱，再把总租金调回 1600 美元。三个剩余都相同，表示大家都觉得自己没有吃亏。"
+          : "First assign rooms to the strongest valuations, then adjust rents back to the $1600 total. Equal surplus means nobody is left with a worse deal by their own bids."}
+      </InsightPanel>
     </div>
   );
 }
@@ -479,6 +505,11 @@ function PrisonersSimulation({ locale = "en" }: { locale?: Locale }) {
         <ResultCard label="B payoff" value={result.payoffB} tone={result.payoffB >= -1 ? "good" : "danger"} />
       </div>
       <TimelineAnimation steps={history} />
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "背叛通常让个人当下更安全，但双方都背叛会让总结果变差。重复轮次里的信任分数用来表现：未来关系会改变今天的激励。"
+          : "Defection can look safer in a single round, but mutual defection lowers the shared outcome. The trust score shows how future relationships can change today's incentives."}
+      </InsightPanel>
     </div>
   );
 }
@@ -596,6 +627,11 @@ function NashSimulation({ locale = "en" }: { locale?: Locale }) {
         <ResultCard label={t.shopBProfit} value={profitB} tone={profitB >= profitA ? "good" : "neutral"} />
         <ResultCard label={t.signal} value={closeToEquilibrium ? t.glowing : t.keepDragging} tone={closeToEquilibrium ? "good" : "warn"} />
       </div>
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "拖动店铺时，收益来自附近顾客密度和竞争距离。发光并不代表全局最好，而是表示在当前对手位置下，单独移动的吸引力变小。"
+          : "When you drag a shop, profit follows customer density and distance from the rival. The glow does not mean globally perfect; it means moving alone is less attractive from this profile."}
+      </InsightPanel>
     </div>
   );
 }
@@ -658,6 +694,11 @@ function VickreySimulation({ locale = "en" }: { locale?: Locale }) {
         <ResultCard label={t.winner} value={result.winner.bidderId} tone="good" />
         <ResultCard label={t.pays} value={result.payment} prefix="$" tone="good" />
       </div>
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "最高报价只决定谁赢，真正支付的是第二高价。所以你不用猜别人会报多少，报出自己的真实价值更稳。"
+          : "The highest bid decides who wins, but the payment is the second price. That is why bidding your true value is safer than trying to guess everyone else."}
+      </InsightPanel>
     </div>
   );
 }
@@ -733,6 +774,11 @@ function EnvyFreeSimulation({ locale = "en" }: { locale?: Locale }) {
         value={envy.envyFree ? t.noEnvy : `${envy.envyPairs.length} ${t.warnings}`}
         tone={envy.envyFree ? "good" : "warn"}
       />
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "这里的公平不是看蛋糕面积是否一样，而是看每个人用自己的偏好评价后，是否还想要别人的那份。"
+          : "Fairness here is not equal physical size. It is whether each person, using their own preferences, would still prefer someone else's piece."}
+      </InsightPanel>
     </div>
   );
 }
@@ -796,6 +842,11 @@ function ShapleySimulation({ locale = "en" }: { locale?: Locale }) {
           <ResultCard key={player} label={`${player} ${t.fairPayment}`} value={value} prefix="$" tone="good" />
         ))}
       </div>
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "夏普利值把每一种加入顺序都看一遍，再平均每个人带来的新增价值。这样能避免只看最终成果时的抢功劳。"
+          : "The Shapley value checks every joining order and averages the extra value each person adds. That avoids giving credit only by looking at the final team."}
+      </InsightPanel>
     </div>
   );
 }
@@ -859,6 +910,11 @@ function BertrandSimulation({ locale = "en" }: { locale?: Locale }) {
         value={priceA === cost && priceB === cost ? t.atCost : priceA === priceB ? t.splitMarket : t.cheaperWins}
         tone={priceA === cost && priceB === cost ? "warn" : "neutral"}
       />
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "当商品完全一样时，低一点的价格就能吸走顾客。价格越接近成本，消费者越开心，但店铺利润越薄。"
+          : "With identical products, a slightly lower price can pull customers away. As prices approach cost, consumers benefit while store margins shrink."}
+      </InsightPanel>
     </div>
   );
 }
@@ -929,6 +985,11 @@ function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
         ))}
       </div>
       <TimelineAnimation steps={history} />
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "单个人多用一点会增加自己的收益，但总使用量超过恢复速度时，资源水平会下降，下一轮所有人都变差。"
+          : "Each person gains from using more, but when total usage beats regeneration, the shared resource falls and the next round becomes worse for everyone."}
+      </InsightPanel>
     </div>
   );
 }
@@ -980,6 +1041,11 @@ function UltimatumSimulation({ locale = "en" }: { locale?: Locale }) {
         <ResultCard label={t.rational} value={outcome.acceptsRationally ? t.accepts : t.rejects} tone="neutral" />
         <ResultCard label={t.fairness} value={outcome.acceptsBehaviorally ? t.accepts : t.rejects} tone={outcome.accepted ? "good" : "danger"} />
       </div>
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "纯理性模型只问“有没有钱拿”，公平模型还问“这个分配是否被尊重”。现实谈判经常同时受到两者影响。"
+          : "The strict rational model asks only whether there is money to take. The fairness model also asks whether the split feels respectful."}
+      </InsightPanel>
     </div>
   );
 }
@@ -1043,6 +1109,11 @@ function MatchingSimulation({ locale = "en" }: { locale?: Locale }) {
         <TimelineAnimation steps={result.steps.slice(0, 7).map((step) => step.message)} />
       </div>
       <ResultCard label={t.stableCheck} value={stable ? t.stable : t.blocking} tone={stable ? "good" : "warn"} />
+      <InsightPanel locale={locale}>
+        {locale === "zh"
+          ? "稳定的意思不是每个人都拿到第一志愿，而是不存在一对双方都宁愿抛开当前匹配、选择彼此。"
+          : "Stable does not mean everyone gets their first choice. It means no unmatched pair would both rather leave their current matches for each other."}
+      </InsightPanel>
     </div>
   );
 }
