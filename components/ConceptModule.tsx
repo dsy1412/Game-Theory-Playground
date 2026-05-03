@@ -41,8 +41,39 @@ import { cakeValuations, initialRentBids, matchingPreferences, players, rooms } 
 import type { Concept } from "@/lib/types";
 import { cn, formatCurrency, round } from "@/lib/utils";
 
-export function ConceptModule({ concept }: { concept: Concept }) {
+export function ConceptModule({
+  concept,
+  locale = "en"
+}: {
+  concept: Concept;
+  locale?: "en" | "zh";
+}) {
   const [mode, setMode] = useState<"beginner" | "advanced">("beginner");
+  const isZh = locale === "zh";
+  const copy = isZh
+    ? {
+        back: "Playground",
+        module: "互动模块",
+        beginner: "新手",
+        advanced: "进阶",
+        switchLabel: "English",
+        switchHref: `/concepts/${concept.slug}`,
+        step: "分步解释",
+        lens: "学习视角",
+        lensText: "移动控件时，观察哪个激励先发生变化。这个单点比较，就是策略思维的核心。"
+      }
+    : {
+        back: "Playground",
+        module: "Interactive module",
+        beginner: "beginner",
+        advanced: "advanced",
+        switchLabel: "中文版",
+        switchHref: `/zh/concepts/${concept.slug}`,
+        step: "Step-by-step Explanation",
+        lens: "Learning Lens",
+        lensText:
+          "Watch which incentive changes when you move a control. That single comparison is the heart of strategic thinking."
+      };
 
   useEffect(() => {
     markConceptVisited(concept.slug);
@@ -52,9 +83,9 @@ export function ConceptModule({ concept }: { concept: Concept }) {
     <main className="min-h-screen bg-aurora-soft dark:bg-aurora-dark">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link href={isZh ? "/zh" : "/"} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
-            Playground
+            {copy.back}
           </Link>
           <div className="flex items-center gap-2">
             <div className="rounded-full border border-border bg-white/70 p-1 dark:bg-white/10">
@@ -67,10 +98,13 @@ export function ConceptModule({ concept }: { concept: Concept }) {
                     mode === item ? "bg-foreground text-background dark:bg-white dark:text-slate-950" : "text-muted-foreground"
                   )}
                 >
-                  {item}
+                  {item === "beginner" ? copy.beginner : copy.advanced}
                 </button>
               ))}
             </div>
+            <Button variant="secondary" size="sm" asChild>
+              <Link href={copy.switchHref}>{copy.switchLabel}</Link>
+            </Button>
             <ThemeToggle />
           </div>
         </div>
@@ -79,7 +113,7 @@ export function ConceptModule({ concept }: { concept: Concept }) {
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Interactive module
+            {copy.module}
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-6xl">{concept.title}</h1>
           <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{concept.subtitle}</p>
@@ -100,22 +134,21 @@ export function ConceptModule({ concept }: { concept: Concept }) {
               {concept.slug === "matching-market" && <MatchingSimulation />}
             </GlassCard>
             <div className="grid gap-6 md:grid-cols-2">
-              <FormulaPanel formula={concept.formula} interpretation={concept.interpretation} />
+              <FormulaPanel formula={concept.formula} interpretation={concept.interpretation} locale={locale} />
               <GlassCard className="p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Step-by-step Explanation
+                  {copy.step}
                 </p>
-                <ExplanationPanel concept={concept} mode={mode} />
+                <ExplanationPanel concept={concept} mode={mode} locale={locale} />
               </GlassCard>
             </div>
           </div>
           <aside className="grid content-start gap-6">
-            <ProgressTracker activeSlug={concept.slug} />
+            <ProgressTracker activeSlug={concept.slug} locale={locale} />
             <GlassCard className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Learning Lens</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.lens}</p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Watch which incentive changes when you move a control. That single comparison is the heart of strategic
-                thinking.
+                {copy.lensText}
               </p>
             </GlassCard>
           </aside>

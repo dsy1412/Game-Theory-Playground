@@ -7,7 +7,15 @@ import type { Concept } from "@/lib/types";
 
 type IconName = keyof typeof Icons;
 
-export function ConceptCard({ concept, index = 0 }: { concept: Concept; index?: number }) {
+export function ConceptCard({
+  concept,
+  index = 0,
+  locale = "en"
+}: {
+  concept: Concept;
+  index?: number;
+  locale?: "en" | "zh";
+}) {
   const Icon = (Icons[concept.icon as IconName] ?? Icons.Sparkles) as React.ComponentType<{
     className?: string;
   }>;
@@ -21,7 +29,7 @@ export function ConceptCard({ concept, index = 0 }: { concept: Concept; index?: 
       whileHover={{ y: -8, rotateX: 2, rotateY: -2 }}
       className="h-full"
     >
-      <Link href={`/concepts/${concept.slug}`} className="group block h-full">
+      <Link href={`${locale === "zh" ? "/zh" : ""}/concepts/${concept.slug}`} className="group block h-full">
         <div className="glass relative flex h-full min-h-[190px] flex-col justify-between overflow-hidden rounded-[8px] p-5">
           <div
             className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${concept.accent} opacity-80 transition-opacity group-hover:opacity-100`}

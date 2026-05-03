@@ -4,6 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { concepts } from "@/data/concepts";
+import { zhConcepts } from "@/data/zh";
 import { cn } from "@/lib/utils";
 
 export function markConceptVisited(slug: string) {
@@ -13,8 +14,15 @@ export function markConceptVisited(slug: string) {
   window.localStorage.setItem("gtp-progress", JSON.stringify(next));
 }
 
-export function ProgressTracker({ activeSlug }: { activeSlug?: string }) {
+export function ProgressTracker({
+  activeSlug,
+  locale = "en"
+}: {
+  activeSlug?: string;
+  locale?: "en" | "zh";
+}) {
   const [visited, setVisited] = useState<string[]>([]);
+  const activeConcepts = locale === "zh" ? zhConcepts : concepts;
 
   useEffect(() => {
     setVisited(JSON.parse(window.localStorage.getItem("gtp-progress") ?? "[]") as string[]);
@@ -32,12 +40,12 @@ export function ProgressTracker({ activeSlug }: { activeSlug?: string }) {
         <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${percent}%` }} />
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-5 lg:grid-cols-2">
-        {concepts.map((concept) => {
+        {activeConcepts.map((concept) => {
           const done = visited.includes(concept.slug);
           return (
             <Link
               key={concept.slug}
-              href={`/concepts/${concept.slug}`}
+              href={`${locale === "zh" ? "/zh" : ""}/concepts/${concept.slug}`}
               className={cn(
                 "flex items-center gap-2 rounded-[8px] border border-border bg-white/50 px-2 py-2 transition hover:bg-white dark:bg-white/5 dark:hover:bg-white/10",
                 activeSlug === concept.slug && "border-primary/60"
