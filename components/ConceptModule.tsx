@@ -3,8 +3,13 @@
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  BedDouble,
+  Building2,
+  Fish,
   Play,
-  RefreshCcw
+  RefreshCcw,
+  ShoppingBag,
+  Sun
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
@@ -172,6 +177,72 @@ function InsightPanel({
   );
 }
 
+function CaseStrip({ cases }: { cases: string[] }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {cases.map((item, index) => (
+        <motion.span
+          key={item}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.06 }}
+          className="rounded-full border border-border bg-white/60 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur dark:bg-white/10"
+        >
+          {item}
+        </motion.span>
+      ))}
+    </div>
+  );
+}
+
+function RoomPreview({ roomId, quality }: { roomId: string; quality: number }) {
+  const isLarge = roomId === "large-window";
+  const isMedium = roomId === "medium-bed";
+
+  return (
+    <div className="relative h-32 overflow-hidden rounded-[8px] border border-white/60 bg-gradient-to-br from-sky-100 via-white to-teal-100 p-3 dark:border-white/10 dark:from-sky-950 dark:via-slate-900 dark:to-teal-950">
+      {isLarge ? (
+        <>
+          <motion.div
+            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-amber-200 text-amber-700 shadow-glass"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.75, 1, 0.75] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <Sun className="h-5 w-5" />
+          </motion.div>
+          <div className="grid h-full grid-cols-3 gap-2 rounded-[8px] border border-sky-200/70 bg-sky-200/30 p-2 dark:border-white/10 dark:bg-sky-400/10">
+            {[0, 1, 2].map((pane) => (
+              <div key={pane} className="rounded-[6px] bg-white/45 dark:bg-white/10" />
+            ))}
+          </div>
+        </>
+      ) : isMedium ? (
+        <div className="flex h-full items-end justify-center">
+          <div className="relative h-16 w-36 rounded-t-[8px] bg-teal-200/80 shadow-inner dark:bg-teal-500/25">
+            <BedDouble className="absolute left-4 top-4 h-8 w-8 text-teal-800 dark:text-teal-100" />
+            <div className="absolute right-4 top-3 h-5 w-9 rounded-[6px] bg-white/70 dark:bg-white/20" />
+            <div className="absolute bottom-0 h-3 w-full rounded-b-[8px] bg-teal-500/30" />
+          </div>
+        </div>
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <motion.div
+            className="h-20 w-24 rounded-[8px] border border-slate-300 bg-slate-200/70 shadow-inner dark:border-white/10 dark:bg-white/10"
+            animate={{ x: [0, -4, 0, 4, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+      )}
+      <div className="absolute bottom-3 left-3 right-3 h-1.5 overflow-hidden rounded-full bg-white/50 dark:bg-white/10">
+        <motion.div
+          className="h-full rounded-full bg-gradient-to-r from-teal-400 to-sky-500"
+          animate={{ width: `${quality}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 const simText = {
   en: {
     splitTitle: "Sealed-Bid Room Split",
@@ -279,7 +350,7 @@ const simText = {
     noEnvy: "没有检测到嫉妒",
     warnings: "个嫉妒提醒",
     shapleyTitle: "项目贡献分配",
-    joins: "第",
+    joins: "加入",
     coalitionValue: "联盟价值",
     nextOrder: "播放下一个加入顺序",
     fairPayment: "公平报酬",
@@ -337,6 +408,13 @@ function SplitRentSimulation({ locale = "en" }: { locale?: Locale }) {
         <h2 className="text-2xl font-semibold">{t.splitTitle}</h2>
         <ResetButton locale={locale} onClick={() => setBids(initialRentBids)} />
       </div>
+      <CaseStrip
+        cases={
+          locale === "zh"
+            ? ["合租分房", "办公室座位", "共享工作室"]
+            : ["Roommates", "Office desks", "Shared studios"]
+        }
+      />
       <SimulationCanvas>
         <div className="grid gap-4 md:grid-cols-3">
           {activeRooms.map((room, index) => {
@@ -351,9 +429,7 @@ function SplitRentSimulation({ locale = "en" }: { locale?: Locale }) {
                 transition={{ delay: index * 0.08 }}
                 className="rounded-[8px] border border-border bg-white/75 p-4 shadow-glass dark:bg-white/5"
               >
-                <div className="h-28 rounded-[8px] bg-gradient-to-br from-sky-200 via-white to-teal-100 p-3 dark:from-sky-950 dark:via-slate-900 dark:to-teal-950">
-                  <div className="h-full rounded-[8px] border border-white/70 bg-white/40 dark:border-white/10 dark:bg-white/5" />
-                </div>
+                <RoomPreview roomId={room.id} quality={room.quality} />
                 <h3 className="mt-4 font-semibold">{room.name}</h3>
                 <p className="text-sm text-muted-foreground">{room.description}</p>
                 <div className="mt-4 rounded-[8px] bg-muted p-3">
@@ -468,6 +544,13 @@ function PrisonersSimulation({ locale = "en" }: { locale?: Locale }) {
           }}
         />
       </div>
+      <CaseStrip
+        cases={
+          locale === "zh"
+            ? ["偷吃外卖", "小组作业", "公司价格默契"]
+            : ["Takeout", "Group projects", "Price discipline"]
+        }
+      />
       <SimulationCanvas>
         <div className="grid h-full content-center gap-6 md:grid-cols-[1fr_1.2fr_1fr]">
           <AnimatedCharacter name={locale === "zh" ? "室友 A" : "Roommate A"} mood={result.payoffA >= -1 ? "happy" : "worried"} color="#2563eb" />
@@ -501,8 +584,8 @@ function PrisonersSimulation({ locale = "en" }: { locale?: Locale }) {
           <Play className="h-4 w-4" />
           {t.playRound}
         </Button>
-        <ResultCard label="A payoff" value={result.payoffA} tone={result.payoffA >= -1 ? "good" : "danger"} />
-        <ResultCard label="B payoff" value={result.payoffB} tone={result.payoffB >= -1 ? "good" : "danger"} />
+        <ResultCard label={locale === "zh" ? "A 的收益" : "A payoff"} value={result.payoffA} tone={result.payoffA >= -1 ? "good" : "danger"} />
+        <ResultCard label={locale === "zh" ? "B 的收益" : "B payoff"} value={result.payoffB} tone={result.payoffB >= -1 ? "good" : "danger"} />
       </div>
       <TimelineAnimation steps={history} />
       <InsightPanel locale={locale}>
@@ -662,6 +745,13 @@ function VickreySimulation({ locale = "en" }: { locale?: Locale }) {
           }}
         />
       </div>
+      <CaseStrip
+        cases={
+          locale === "zh"
+            ? ["房间竞价", "艺术品拍卖", "广告位竞价"]
+            : ["Room bids", "Art auctions", "Ad slots"]
+        }
+      />
       <SimulationCanvas>
         <div className="grid h-full content-center gap-5">
           {bids.map((bid) => (
@@ -861,6 +951,8 @@ function BertrandSimulation({ locale = "en" }: { locale?: Locale }) {
   const profitB = calculateBertrandDemand(priceA, priceB).demandB;
   const storeAProfit = (priceA - cost) * profitA;
   const storeBProfit = (priceB - cost) * profitB;
+  const winnerSide = priceA === priceB ? "tie" : priceA < priceB ? "A" : "B";
+  const customerShift = winnerSide === "A" ? -78 : winnerSide === "B" ? 78 : 0;
 
   return (
     <div className="grid gap-5">
@@ -874,31 +966,69 @@ function BertrandSimulation({ locale = "en" }: { locale?: Locale }) {
           }}
         />
       </div>
+      <CaseStrip
+        cases={
+          locale === "zh"
+            ? ["便利店可乐", "打车补贴", "咖啡折扣"]
+            : ["Cola stores", "Ride-hailing coupons", "Coffee discounts"]
+        }
+      />
       <SimulationCanvas>
-        <div className="grid h-full content-center gap-6 md:grid-cols-2">
+        <div className="grid h-full content-center gap-5 md:grid-cols-[1fr_1.1fr_1fr]">
           {[
             [locale === "zh" ? "店铺 A" : "Store A", priceA, demand.demandA, storeAProfit, "#2563eb"],
             [locale === "zh" ? "店铺 B" : "Store B", priceB, demand.demandB, storeBProfit, "#db2777"]
-          ].map(([name, price, quantity, profit, color]) => (
-            <div key={name as string} className="rounded-[8px] border border-border bg-white/70 p-5 dark:bg-white/5">
-              <p className="text-lg font-semibold">{name}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{t.price} ${price}</p>
-              <div className="mt-5 flex h-20 items-end gap-1">
-                {Array.from({ length: Math.round((quantity as number) / 8) }).map((_, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ y: -12, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    className="h-8 w-3 rounded-full"
-                    style={{ backgroundColor: color as string }}
-                  />
-                ))}
+          ].map(([name, price, quantity, profit, color], index) => (
+            <motion.div
+              key={name as string}
+              layout
+              className={cn(
+                "rounded-[8px] border bg-white/70 p-5 shadow-glass dark:bg-white/5",
+                winnerSide === "tie" || winnerSide === (index === 0 ? "A" : "B") ? "border-primary/40" : "border-border"
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-lg font-semibold">{name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t.price} ${price}</p>
+                </div>
+                <div className="grid h-12 w-12 place-items-center rounded-[8px] bg-muted" style={{ color: color as string }}>
+                  <Building2 className="h-6 w-6" />
+                </div>
               </div>
+              <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: color as string }}
+                  animate={{ width: String(quantity as number) + "%" }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {Math.round(quantity as number)}% {locale === "zh" ? "顾客流向这里" : "customer flow"}
+              </p>
               <p className="mt-4 text-2xl font-semibold">
                 <AnimatedCounter value={profit as number} prefix="$" />
               </p>
-            </div>
+            </motion.div>
           ))}
+          <div className="order-first grid content-center gap-4 md:order-none md:col-start-2 md:row-start-1">
+            <div className="relative mx-auto h-28 w-full max-w-xs rounded-[8px] border border-border bg-white/55 p-4 dark:bg-white/5">
+              <div className="absolute left-6 top-1/2 h-px w-[calc(100%-3rem)] bg-border" />
+              {Array.from({ length: 9 }).map((_, index) => (
+                <motion.div
+                  key={index}
+                  className="absolute left-1/2 top-1/2 grid h-8 w-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-background shadow-glass"
+                  animate={{ x: customerShift + (index - 4) * 7, y: Math.sin(index) * 12 }}
+                  transition={{ type: "spring", stiffness: 80, damping: 16, delay: index * 0.03 }}
+                >
+                  <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                </motion.div>
+              ))}
+            </div>
+            <p className="text-center text-sm font-medium text-muted-foreground">
+              {winnerSide === "tie" ? t.splitMarket : t.cheaperWins}
+            </p>
+          </div>
         </div>
       </SimulationCanvas>
       <div className="grid gap-4 md:grid-cols-2">
@@ -925,6 +1055,8 @@ function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
   const [resource, setResource] = useState(82);
   const [history, setHistory] = useState<string[]>([t.pondStarts]);
   const round = simulateCommonsRound(usage, resource, 18);
+  const fishCount = Math.max(3, Math.round(resource / 8));
+  const pressure = Math.min(100, round.totalUsage * 3);
 
   function play() {
     setResource(round.nextResource);
@@ -947,6 +1079,13 @@ function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
           }}
         />
       </div>
+      <CaseStrip
+        cases={
+          locale === "zh"
+            ? ["共享鱼塘", "公共停车位", "办公室零食柜"]
+            : ["Shared pond", "Public parking", "Office snacks"]
+        }
+      />
       <SimulationCanvas>
         <div className="grid h-full content-center gap-6">
           <div className="relative mx-auto h-64 w-64 overflow-hidden rounded-full border border-cyan-300/50 bg-cyan-100 dark:bg-cyan-950">
@@ -954,6 +1093,25 @@ function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
               className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-cyan-500 to-teal-300"
               animate={{ height: `${resource}%` }}
             />
+            <motion.div
+              className="absolute inset-6 rounded-full border border-red-400/40"
+              animate={{ scale: [1, 1 + pressure / 180, 1], opacity: [0.08, 0.35, 0.08] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            {Array.from({ length: fishCount }).map((_, index) => (
+              <motion.div
+                key={index}
+                className="absolute grid h-6 w-10 place-items-center rounded-full bg-white/25 text-cyan-950 shadow-sm dark:text-white"
+                style={{
+                  left: `${18 + (index * 17) % 62}%`,
+                  top: `${26 + (index * 23) % 48}%`
+                }}
+                animate={{ x: [0, index % 2 ? 12 : -12, 0], opacity: resource < 30 ? 0.45 : 0.9 }}
+                transition={{ duration: 3 + (index % 4), repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Fish className="h-4 w-4" />
+              </motion.div>
+            ))}
             <div className="absolute inset-0 grid place-items-center text-4xl font-semibold text-white drop-shadow">
               <AnimatedCounter value={resource} suffix="%" />
             </div>
