@@ -24,10 +24,10 @@ export function ResultCard({
       animate={{ scale: [1, 1.015, 1] }}
       transition={{ duration: 0.45 }}
       className={cn(
-        "rounded-[8px] border border-border bg-white/70 p-4 dark:bg-white/5",
-        tone === "good" && "border-emerald-500/40 bg-emerald-500/10",
-        tone === "warn" && "border-amber-500/40 bg-amber-500/10",
-        tone === "danger" && "border-red-500/40 bg-red-500/10"
+        "rounded-[8px] border border-border bg-card p-4 shadow-sm",
+        tone === "good" && "border-foreground bg-background",
+        tone === "warn" && "border-foreground/70 bg-muted",
+        tone === "danger" && "border-foreground bg-muted"
       )}
     >
       <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{label}</p>

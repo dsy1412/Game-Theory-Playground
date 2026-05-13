@@ -82,9 +82,11 @@ export function ConceptModule({
     markConceptVisited(concept.slug);
   }, [concept.slug]);
 
+  const runNotes = getRunNotes(concept.slug, locale);
+
   return (
     <main className="min-h-screen bg-aurora-soft dark:bg-aurora-dark">
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-2xl">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link href={isZh ? "/zh" : "/"} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
@@ -100,12 +102,17 @@ export function ConceptModule({
       </header>
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            {copy.module}
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-6xl">{concept.title}</h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{concept.subtitle}</p>
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 grid gap-6 lg:grid-cols-[1fr_420px] lg:items-end"
+        >
+          <div>
+            <p className="font-mono text-sm uppercase text-muted-foreground">{copy.module}</p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-6xl">{concept.title}</h1>
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-muted-foreground">{concept.subtitle}</p>
+          </div>
+          <RuleLedger concept={concept} locale={locale} />
         </motion.div>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
@@ -133,6 +140,7 @@ export function ConceptModule({
             </div>
           </div>
           <aside className="grid content-start gap-6">
+            <ConceptRunPanel notes={runNotes} locale={locale} />
             <ProgressTracker activeSlug={concept.slug} locale={locale} />
             <GlassCard className="p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.lens}</p>
@@ -156,6 +164,165 @@ function ResetButton({ onClick, locale = "en" }: { onClick: () => void; locale?:
   );
 }
 
+function RuleLedger({ concept, locale = "en" }: { concept: Concept; locale?: Locale }) {
+  const isZh = locale === "zh";
+  return (
+    <div className="rounded-[8px] border border-foreground bg-card p-5 shadow-sm">
+      <p className="font-mono text-xs uppercase text-muted-foreground">{isZh ? "规则账本" : "Rule ledger"}</p>
+      <div className="mt-4 grid gap-3 text-sm">
+        <div className="grid grid-cols-[88px_1fr] gap-3 border-b border-border pb-3">
+          <span className="font-mono text-xs uppercase text-muted-foreground">{isZh ? "场景" : "case"}</span>
+          <span className="leading-6 text-muted-foreground">{concept.scenario}</span>
+        </div>
+        <div className="grid grid-cols-[88px_1fr] gap-3 border-b border-border pb-3">
+          <span className="font-mono text-xs uppercase text-muted-foreground">{isZh ? "公式" : "rule"}</span>
+          <code className="break-words font-mono text-xs">{concept.formula}</code>
+        </div>
+        <div className="grid grid-cols-[88px_1fr] gap-3">
+          <span className="font-mono text-xs uppercase text-muted-foreground">{isZh ? "问题" : "question"}</span>
+          <span className="font-medium">{isZh ? "单独改变策略时，谁的收益或公平感先变化？" : "When one strategy changes alone, whose payoff or fairness changes first?"}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConceptRunPanel({
+  notes,
+  locale = "en"
+}: {
+  notes: { title: string; steps: string[]; observation: string };
+  locale?: Locale;
+}) {
+  return (
+    <GlassCard className="p-5">
+      <p className="font-mono text-xs uppercase text-muted-foreground">{locale === "zh" ? "运行步骤" : "Run sequence"}</p>
+      <h2 className="mt-3 text-xl font-semibold">{notes.title}</h2>
+      <div className="mt-5 grid gap-3">
+        {notes.steps.map((step, index) => (
+          <div key={step} className="grid grid-cols-[40px_1fr] gap-3 rounded-[8px] border border-border bg-background p-3">
+            <span className="font-mono text-xs text-muted-foreground">0{index + 1}</span>
+            <p className="text-sm leading-6">{step}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 rounded-[8px] border border-foreground bg-foreground p-4 text-sm leading-6 text-background">
+        {notes.observation}
+      </div>
+    </GlassCard>
+  );
+}
+
+function getRunNotes(slug: string, locale: Locale) {
+  const zh: Record<string, { title: string; steps: string[]; observation: string }> = {
+    "split-rent-fairly": {
+      title: "从报价到租金",
+      steps: ["输入每个人对每个房间的真实估值。", "让每个房间暂时给出价最高的人。", "把总租金拉回 1600，并观察剩余是否相等。"],
+      observation: "重点看“剩余”而不是只看租金：公平来自每个人按自己的估值都不吃亏。"
+    },
+    "prisoners-dilemma": {
+      title: "从一次背叛到长期信任",
+      steps: ["先选 A 和 B 的行动。", "在矩阵中找到对应格子。", "播放重复轮次，观察信任如何改变未来激励。"],
+      observation: "单轮理性和长期关系会拉扯：这正是囚徒困境的核心张力。"
+    },
+    "nash-equilibrium": {
+      title: "拖动位置，寻找稳定点",
+      steps: ["拖动两家店的位置。", "比较各自收益是否上升。", "当单独移动没有好处时，读作均衡候选。"],
+      observation: "纳什均衡不是最好结果，而是没人能单独变好的结果。"
+    },
+    "vickrey-auction": {
+      title: "报价只决定胜负，价格来自第二名",
+      steps: ["调节三个密封报价。", "看最高报价者获胜。", "比较获胜者支付的是第二高价而不是自己的报价。"],
+      observation: "二价机制把“我想赢”和“我怕付太多”分开，因此更鼓励真实报价。"
+    },
+    "envy-free-allocation": {
+      title: "公平来自主观价值",
+      steps: ["移动蛋糕切线。", "看每个人对每一段的主观价值。", "检查是否有人更想要别人的份额。"],
+      observation: "大小相等不一定公平；偏好不同，公平也要按个人价值来判断。"
+    },
+    "shapley-value": {
+      title: "把每一种加入顺序都算一遍",
+      steps: ["播放一个加入顺序。", "记录每个人加入时新增的价值。", "在所有顺序上取平均。"],
+      observation: "夏普利值不是拍脑袋分功劳，而是平均边际贡献。"
+    },
+    "bertrand-competition": {
+      title: "价格差一点，需求可能全变",
+      steps: ["调节两家店价格。", "观察顾客流向低价店。", "把价格推近成本，观察利润被压缩。"],
+      observation: "同质商品的价格战会把利润推薄，差异化才可能改变博弈。"
+    },
+    "tragedy-of-the-commons": {
+      title: "个人多用一点，集体少一点",
+      steps: ["调节每个人的使用量。", "模拟一轮资源恢复。", "比较个人收益和池塘余量。"],
+      observation: "问题不在于单个人坏，而在于收益私人化、损耗公共化。"
+    },
+    "ultimatum-game": {
+      title: "钱不是唯一收益",
+      steps: ["调节给 B 的金额。", "设置 B 的公平底线。", "比较理性模型和公平模型的接受条件。"],
+      observation: "人会为公平付出代价，所以谈判不只是算钱。"
+    },
+    "matching-market": {
+      title: "稳定来自没有双方共同反悔",
+      steps: ["调整偏好排序。", "逐步运行提议和拒绝。", "检查是否还有阻塞配对。"],
+      observation: "稳定匹配关注的不是每个人都最满意，而是没有一对人想一起离开。"
+    }
+  };
+
+  const en: Record<string, { title: string; steps: string[]; observation: string }> = {
+    "split-rent-fairly": {
+      title: "From bids to rents",
+      steps: ["Enter each person's value for each room.", "Assign each room to the highest valuation.", "Pull total rent back to $1600 and compare surplus."],
+      observation: "Watch surplus, not rent alone: fairness means nobody feels worse by their own values."
+    },
+    "prisoners-dilemma": {
+      title: "From one betrayal to repeated trust",
+      steps: ["Choose A and B's actions.", "Find the selected cell in the matrix.", "Play repeated rounds and watch trust reshape incentives."],
+      observation: "One-shot rationality and long-term relationship pull in different directions."
+    },
+    "nash-equilibrium": {
+      title: "Move locations, search for stability",
+      steps: ["Drag the two shops.", "Compare whether either profit rises.", "Read a no-improvement position as an equilibrium candidate."],
+      observation: "A Nash equilibrium is not necessarily best; it is where no one improves alone."
+    },
+    "vickrey-auction": {
+      title: "Your bid decides winning, not the price",
+      steps: ["Adjust the sealed bids.", "Watch the highest bidder win.", "Compare the winner's payment with the second-highest bid."],
+      observation: "Second price separates wanting to win from fearing overpayment, so truth becomes attractive."
+    },
+    "envy-free-allocation": {
+      title: "Fairness is subjective",
+      steps: ["Move the cake cuts.", "Read each person's value for each segment.", "Check whether anyone wants someone else's piece."],
+      observation: "Equal size is not always fair; preferences decide whether envy exists."
+    },
+    "shapley-value": {
+      title: "Average every joining order",
+      steps: ["Play one joining order.", "Record each person's marginal value.", "Average across all orders."],
+      observation: "Shapley value divides credit by average marginal contribution."
+    },
+    "bertrand-competition": {
+      title: "A tiny price cut can move demand",
+      steps: ["Adjust both store prices.", "Watch customers flow to the cheaper store.", "Push price toward cost and observe shrinking profit."],
+      observation: "Identical goods create brutal price competition unless differentiation changes the game."
+    },
+    "tragedy-of-the-commons": {
+      title: "A little more for me, a little less for us",
+      steps: ["Set each person's usage.", "Simulate regeneration.", "Compare private gain with remaining resource."],
+      observation: "The issue is not one bad actor; it is private benefit plus shared damage."
+    },
+    "ultimatum-game": {
+      title: "Money is not the only payoff",
+      steps: ["Set B's offer.", "Set B's fairness threshold.", "Compare rational and fairness acceptance."],
+      observation: "People pay to reject disrespect, so negotiation is not just arithmetic."
+    },
+    "matching-market": {
+      title: "Stable means no mutual regret",
+      steps: ["Change preference rankings.", "Run proposals and rejections.", "Check for blocking pairs."],
+      observation: "A stable match need not be everyone's favorite; it prevents pairs from leaving together."
+    }
+  };
+
+  return (locale === "zh" ? zh : en)[slug] ?? (locale === "zh" ? zh["prisoners-dilemma"] : en["prisoners-dilemma"]);
+}
+
 function InsightPanel({
   locale = "en",
   title,
@@ -169,7 +336,7 @@ function InsightPanel({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[8px] border border-primary/20 bg-primary/10 p-4 text-sm leading-6 text-muted-foreground dark:bg-white/5"
+      className="rounded-[8px] border border-border bg-background p-4 text-sm leading-6 text-muted-foreground shadow-sm"
     >
       <p className="mb-1 font-semibold text-foreground">{title ?? (locale === "zh" ? "怎样读这个结果" : "How to read this result")}</p>
       {children}
@@ -186,7 +353,7 @@ function CaseStrip({ cases }: { cases: string[] }) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.06 }}
-          className="rounded-full border border-border bg-white/60 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur dark:bg-white/10"
+          className="rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground"
         >
           {item}
         </motion.span>
@@ -200,42 +367,42 @@ function RoomPreview({ roomId, quality }: { roomId: string; quality: number }) {
   const isMedium = roomId === "medium-bed";
 
   return (
-    <div className="relative h-32 overflow-hidden rounded-[8px] border border-white/60 bg-gradient-to-br from-sky-100 via-white to-teal-100 p-3 dark:border-white/10 dark:from-sky-950 dark:via-slate-900 dark:to-teal-950">
+    <div className="relative h-32 overflow-hidden rounded-[8px] border border-border bg-background p-3">
       {isLarge ? (
         <>
           <motion.div
-            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-amber-200 text-amber-700 shadow-glass"
+            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full border border-border bg-card text-foreground shadow-sm"
             animate={{ scale: [1, 1.08, 1], opacity: [0.75, 1, 0.75] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
             <Sun className="h-5 w-5" />
           </motion.div>
-          <div className="grid h-full grid-cols-3 gap-2 rounded-[8px] border border-sky-200/70 bg-sky-200/30 p-2 dark:border-white/10 dark:bg-sky-400/10">
+          <div className="grid h-full grid-cols-3 gap-2 rounded-[8px] border border-border bg-muted p-2">
             {[0, 1, 2].map((pane) => (
-              <div key={pane} className="rounded-[6px] bg-white/45 dark:bg-white/10" />
+              <div key={pane} className="rounded-[6px] bg-background" />
             ))}
           </div>
         </>
       ) : isMedium ? (
         <div className="flex h-full items-end justify-center">
-          <div className="relative h-16 w-36 rounded-t-[8px] bg-teal-200/80 shadow-inner dark:bg-teal-500/25">
-            <BedDouble className="absolute left-4 top-4 h-8 w-8 text-teal-800 dark:text-teal-100" />
-            <div className="absolute right-4 top-3 h-5 w-9 rounded-[6px] bg-white/70 dark:bg-white/20" />
-            <div className="absolute bottom-0 h-3 w-full rounded-b-[8px] bg-teal-500/30" />
+          <div className="relative h-16 w-36 rounded-t-[8px] border border-border bg-muted shadow-inner">
+            <BedDouble className="absolute left-4 top-4 h-8 w-8 text-foreground" />
+            <div className="absolute right-4 top-3 h-5 w-9 rounded-[6px] bg-background" />
+            <div className="absolute bottom-0 h-3 w-full rounded-b-[8px] bg-foreground/15" />
           </div>
         </div>
       ) : (
         <div className="flex h-full items-center justify-center">
           <motion.div
-            className="h-20 w-24 rounded-[8px] border border-slate-300 bg-slate-200/70 shadow-inner dark:border-white/10 dark:bg-white/10"
+            className="h-20 w-24 rounded-[8px] border border-border bg-muted shadow-inner"
             animate={{ x: [0, -4, 0, 4, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
         </div>
       )}
-      <div className="absolute bottom-3 left-3 right-3 h-1.5 overflow-hidden rounded-full bg-white/50 dark:bg-white/10">
+      <div className="absolute bottom-3 left-3 right-3 h-1.5 overflow-hidden rounded-full bg-muted">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-teal-400 to-sky-500"
+          className="h-full rounded-full bg-foreground"
           animate={{ width: `${quality}%` }}
         />
       </div>
@@ -676,10 +843,10 @@ function NashSimulation({ locale = "en" }: { locale?: Locale }) {
           onPointerLeave={() => setDragging(null)}
         >
           <D3Heatmap values={heat} className="absolute inset-0 h-full w-full opacity-80" active={{ x: 0.5, y: 0.46 }} />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.62))] dark:bg-[radial-gradient(circle_at_center,transparent,rgba(2,6,23,0.55))]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(255,255,255,0.72))] dark:bg-[radial-gradient(circle_at_center,transparent,rgba(0,0,0,0.62))]" />
           {[
-            ["a", shopA, locale === "zh" ? "店铺 A" : "Shop A", "#2563eb"],
-            ["b", shopB, locale === "zh" ? "店铺 B" : "Shop B", "#db2777"]
+            ["a", shopA, locale === "zh" ? "店铺 A" : "Shop A", "hsl(var(--foreground))"],
+            ["b", shopB, locale === "zh" ? "店铺 B" : "Shop B", "hsl(var(--muted-foreground))"]
           ].map(([id, shop, label, color]) => (
             <motion.button
               key={id as string}
@@ -699,7 +866,7 @@ function NashSimulation({ locale = "en" }: { locale?: Locale }) {
             </motion.button>
           ))}
           {closeToEquilibrium ? (
-            <div className="absolute left-1/2 top-6 -translate-x-1/2 rounded-full border border-emerald-400/50 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-700 backdrop-blur dark:text-emerald-200">
+            <div className="absolute left-1/2 top-6 -translate-x-1/2 rounded-[8px] border border-foreground bg-card px-4 py-2 text-sm font-semibold shadow-sm">
               {t.equilibrium}
             </div>
           ) : null}
@@ -1088,20 +1255,20 @@ function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
       />
       <SimulationCanvas>
         <div className="grid h-full content-center gap-6">
-          <div className="relative mx-auto h-64 w-64 overflow-hidden rounded-full border border-cyan-300/50 bg-cyan-100 dark:bg-cyan-950">
+          <div className="relative mx-auto h-64 w-64 overflow-hidden rounded-full border border-foreground bg-muted">
             <motion.div
-              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-cyan-500 to-teal-300"
+              className="absolute inset-x-0 bottom-0 bg-foreground/80"
               animate={{ height: `${resource}%` }}
             />
             <motion.div
-              className="absolute inset-6 rounded-full border border-red-400/40"
+              className="absolute inset-6 rounded-full border border-background/50"
               animate={{ scale: [1, 1 + pressure / 180, 1], opacity: [0.08, 0.35, 0.08] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
             />
             {Array.from({ length: fishCount }).map((_, index) => (
               <motion.div
                 key={index}
-                className="absolute grid h-6 w-10 place-items-center rounded-full bg-white/25 text-cyan-950 shadow-sm dark:text-white"
+                className="absolute grid h-6 w-10 place-items-center rounded-full border border-border bg-card text-foreground shadow-sm"
                 style={{
                   left: `${18 + (index * 17) % 62}%`,
                   top: `${26 + (index * 23) % 48}%`
@@ -1112,12 +1279,12 @@ function CommonsSimulation({ locale = "en" }: { locale?: Locale }) {
                 <Fish className="h-4 w-4" />
               </motion.div>
             ))}
-            <div className="absolute inset-0 grid place-items-center text-4xl font-semibold text-white drop-shadow">
+            <div className="absolute inset-0 grid place-items-center text-4xl font-semibold text-background drop-shadow">
               <AnimatedCounter value={resource} suffix="%" />
             </div>
           </div>
           {round.collapsed ? (
-            <div className="mx-auto rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white">{t.collapse}</div>
+            <div className="mx-auto rounded-[8px] border border-foreground bg-foreground px-4 py-2 text-sm font-semibold text-background">{t.collapse}</div>
           ) : null}
         </div>
       </SimulationCanvas>
@@ -1184,7 +1351,7 @@ function UltimatumSimulation({ locale = "en" }: { locale?: Locale }) {
             animate={{ rotate: outcome.accepted ? 0 : [-2, 2, -2, 0], scale: outcome.accepted ? 1 : [1, 1.04, 1] }}
             className={cn(
               "mx-auto rounded-[8px] border-2 px-8 py-4 text-2xl font-black uppercase tracking-[0.2em]",
-              outcome.accepted ? "border-emerald-500 text-emerald-600" : "border-red-500 text-red-600"
+              outcome.accepted ? "border-foreground text-foreground" : "border-foreground text-foreground bg-muted"
             )}
           >
             {outcome.accepted ? t.accepted : t.rejected}

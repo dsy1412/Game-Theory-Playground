@@ -14,7 +14,7 @@ export function FormulaPanel({
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {locale === "zh" ? "公式" : "Formula"}
       </p>
-      <code className="mt-3 block rounded-[8px] bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-50 dark:bg-black/50">
+      <code className="mt-3 block rounded-[8px] border border-border bg-foreground px-4 py-3 text-sm leading-6 text-background">
         {formula}
       </code>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">{interpretation}</p>

@@ -18,11 +18,11 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex items-center justify-center gap-2 rounded-[8px] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:pointer-events-none disabled:opacity-50",
     variant === "primary" &&
-      "bg-foreground text-background shadow-lg shadow-slate-900/10 hover:-translate-y-0.5 hover:shadow-xl dark:bg-white dark:text-slate-950",
+      "bg-foreground text-background shadow-lg shadow-black/10 hover:-translate-y-0.5 hover:shadow-xl dark:bg-white dark:text-black",
     variant === "secondary" &&
-      "border border-border bg-white/70 text-foreground hover:bg-white dark:bg-white/10 dark:hover:bg-white/15",
+      "border border-border bg-card text-foreground hover:bg-muted dark:bg-white/10 dark:hover:bg-white/15",
     variant === "ghost" && "text-foreground hover:bg-foreground/8 dark:hover:bg-white/10",
     variant === "danger" && "bg-red-500 text-white hover:bg-red-600",
     size === "sm" && "h-9 px-4 text-sm",

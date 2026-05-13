@@ -24,14 +24,14 @@ const config: Config = {
         "accent-foreground": "hsl(var(--accent-foreground))"
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(59, 130, 246, 0.22)",
-        glass: "0 20px 70px rgba(15, 23, 42, 0.14)"
+        glow: "0 20px 60px rgba(0, 0, 0, 0.16)",
+        glass: "0 18px 44px rgba(0, 0, 0, 0.12)"
       },
       backgroundImage: {
         "aurora-soft":
-          "radial-gradient(circle at 18% 20%, rgba(45, 212, 191, 0.20), transparent 28%), radial-gradient(circle at 82% 8%, rgba(99, 102, 241, 0.18), transparent 30%), linear-gradient(135deg, rgba(255,255,255,0.95), rgba(241,245,249,0.72))",
+          "linear-gradient(135deg, rgba(255,255,255,1), rgba(239,239,239,0.94))",
         "aurora-dark":
-          "radial-gradient(circle at 12% 16%, rgba(45, 212, 191, 0.18), transparent 30%), radial-gradient(circle at 86% 12%, rgba(147, 197, 253, 0.15), transparent 32%), linear-gradient(135deg, #020617, #111827 58%, #0f172a)"
+          "linear-gradient(135deg, #050505, #111111 58%, #050505)"
       },
       animation: {
         "float-slow": "floatSlow 8s ease-in-out infinite",
